@@ -13,6 +13,9 @@ services:
       - ./nginx_config:/etc/nginx/conf.d
       # 挂载 SSL 证书 (为未来 HTTPS 预留)
       - /etc/letsencrypt:/etc/letsencrypt 
+    extra_hosts:
+      # 让容器内可通过 host.docker.internal 访问宿主机上的其它服务
+      - "host.docker.internal:host-gateway"
     networks:
       - xipi-network
     restart: always
@@ -21,6 +24,7 @@ services:
   # 注意：这是示例，您需要确保您的 www-repo 部署时
   # 也将容器加入了 'xipi-network'
   www-app:
+    profiles: ["examples"]
     image: xipilabs/www-image:latest # 示例：请替换成您真实的官网镜像
     container_name: www-app
     # 官网应用不需要暴露 ports 到主机
@@ -33,6 +37,7 @@ services:
 
   # 3. Taleweave (taleweave.xipilabs.com)
   taleweave-app:
+    profiles: ["examples"]
     image: xipilabs/taleweave-image:latest # 示例：请替换成您真实的 Taleweave 镜像
     container_name: taleweave-app
     expose:
