@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: "docker-compose.yml,nginx_config/" # 要复制的文件和目录
+          source: "docker-compose.yml,nginx_config/,data/" # 要复制的文件和目录
           target: ${{ secrets.PROJECT_PATH }} # 目标服务器路径
           strip_components: 0 # 保持目录结构
 
@@ -44,10 +44,13 @@ jobs:
             set -e
             cd ${{ secrets.PROJECT_PATH }}
 
-            # 启动或更新服务
-            docker compose up -d
+            # 启动或更新网关
+            docker compose up -d gateway-nginx
 
-            # 安全地重载 Nginx 配置，如果容器刚启动则执行重启兜底
+            # 尝试静默续期证书（首次部署尚未申请证书时会提示“无可续期”）
+            docker compose run --rm --no-deps certbot renew --webroot -w /var/www/certbot --quiet || true
+
+            # 重载 Nginx 以确保读取最新证书；如果容器刚启动则执行重启兜底
             docker compose exec gateway-nginx nginx -s reload || docker compose restart gateway-nginx
 
             echo "Gateway deployment successful."
