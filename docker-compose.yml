@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. 网关 Nginx (总入口)
+  gateway-nginx:
+    image: nginx:latest
+    container_name: gateway-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # 挂载 Nginx 配置
+      - ./nginx_config:/etc/nginx/conf.d
+      # 挂载 SSL 证书 (为未来 HTTPS 预留)
+      - /etc/letsencrypt:/etc/letsencrypt 
+    networks:
+      - xipi-network
+    restart: always
+
+  # 2. 官网 (www.xipilabs.com)
+  # 注意：这是示例，您需要确保您的 www-repo 部署时
+  # 也将容器加入了 'xipi-network'
+  www-app:
+    image: xipilabs/www-image:latest # 示例：请替换成您真实的官网镜像
+    container_name: www-app
+    # 官网应用不需要暴露 ports 到主机
+    # Nginx 通过内部网络访问它
+    expose:
+      - "3210" # 官网在容器内运行于 3210 端口
+    networks:
+      - xipi-network
+    restart: always
+
+  # 3. Taleweave (taleweave.xipilabs.com)
+  taleweave-app:
+    image: xipilabs/taleweave-image:latest # 示例：请替换成您真实的 Taleweave 镜像
+    container_name: taleweave-app
+    expose:
+      - "3000" # Taleweave 在容器内运行于 3000 端口
+    networks:
+      - xipi-network
+    restart: always
+
+# 共享网络，让 Nginx 可以通过服务名访问应用
+networks:
+  xipi-network:
+    driver: bridge
