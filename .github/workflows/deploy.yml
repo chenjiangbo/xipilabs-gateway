@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main  # 当 main 分支有推送时触发
+  schedule:
+    - cron: "0 2 * * *"  # 每天 02:00 UTC 自动执行，便于定期续期证书
 
 jobs:
   deploy:
