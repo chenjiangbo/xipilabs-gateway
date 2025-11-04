@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: "docker-compose.yml,nginx_config/,data/" # 要复制的文件和目录
+          source: "docker-compose.yml,nginx_config/" # 同步配置文件
           target: ${{ secrets.PROJECT_PATH }} # 目标服务器路径
           strip_components: 0 # 保持目录结构
 
@@ -43,6 +43,9 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.PROJECT_PATH }}
+
+            # 确保证书目录存在（证书文件本身不从 GitHub 同步）
+            mkdir -p data/certbot/conf data/certbot/www
 
             # 启动或更新网关
             docker compose up -d gateway-nginx
