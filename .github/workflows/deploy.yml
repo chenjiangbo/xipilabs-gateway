@@ -13,29 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to Server
+      - name: Prepare Remote Directory
         uses: appleboy/ssh-action@master
         with:
-          # 从 GitHub Secrets 中读取变量
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          
-          # 在服务器上执行的脚本
           script: |
-            # 1. 进入项目目录 (如果不存在则创建)
-            sudo mkdir -p ${{ secrets.PROJECT_PATH }}
-            cd ${{ secrets.PROJECT_PATH }}
-            
-            # 2. 将新配置从 GitHub Runner 同步到服务器
-            # (这里我们使用 rsync，它更高效)
-            # 我们需要先安装 ssh-agent 来安全地 rsync
-            # (注意：appleboy/ssh-action 已经帮我们处理了 SSH 链接，
-            #  但我们需要把本地文件（Runner上的）传到远程（Server上的）)
-            # 
-            # 修正：appleboy/ssh-action 并不用于同步文件。
-            # 我们用 scp action 来同步文件，用 ssh action 来执行命令。
-            echo "Deployment finished." # 占位符，我们将使用下面的 action
+            set -e
+            mkdir -p ${{ secrets.PROJECT_PATH }}
 
       - name: Sync Files to Server via SCP
         uses: appleboy/scp-action@master
@@ -55,13 +41,13 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
             cd ${{ secrets.PROJECT_PATH }}
-            
-            # 确保 docker-compose 命令可用 (假设已安装)
+
             # 启动或更新服务
-            docker-compose up -d
-            
-            # 安全地重载 Nginx 配置
-            docker-compose exec gateway-nginx nginx -s reload
-            
+            docker compose up -d
+
+            # 安全地重载 Nginx 配置，如果容器刚启动则执行重启兜底
+            docker compose exec gateway-nginx nginx -s reload || docker compose restart gateway-nginx
+
             echo "Gateway deployment successful."
