@@ -49,8 +49,8 @@ jobs:
             # 确保证书目录存在（证书文件本身不从 GitHub 同步）
             mkdir -p data/certbot/conf data/certbot/www
 
-            # 启动或更新网关
-            docker compose up -d gateway-nginx
+            # 启动或更新网关及所有依赖服务，并注入 JWT 密钥
+            JWT_SECRET=${{ secrets.JWT_SECRET }} docker compose up -d
 
             # 尝试静默续期证书（首次部署尚未申请证书时会提示“无可续期”）
             docker compose run --rm --no-deps certbot renew --webroot -w /var/www/certbot --quiet || true

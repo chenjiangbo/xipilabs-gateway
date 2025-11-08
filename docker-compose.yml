@@ -19,8 +19,21 @@ services:
     networks:
       - xipi-network
     restart: always
+    depends_on:
+      - auth_service # 确保 auth_service 先启动
 
-  # 证书申请/续期（需要时使用 docker compose run 调用）
+  # 2. 新增的认证服务
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    restart: always
+    networks:
+      - xipi-network
+    environment:
+      # JWT_SECRET 需要通过 .env 文件或环境变量提供
+      - JWT_SECRET=${JWT_SECRET}
+
+  # 3. 证书申请/续期（需要时使用 docker compose run 调用）
   certbot:
     image: certbot/certbot:latest
     profiles: ["certbot"]
@@ -30,33 +43,7 @@ services:
     networks:
       - xipi-network
 
-  # 2. 官网 (www.xipilabs.com)
-  # 注意：这是示例，您需要确保您的 www-repo 部署时
-  # 也将容器加入了 'xipi-network'
-  www-app:
-    profiles: ["examples"]
-    image: xipilabs/www-image:latest # 示例：请替换成您真实的官网镜像
-    container_name: www-app
-    # 官网应用不需要暴露 ports 到主机
-    # Nginx 通过内部网络访问它
-    expose:
-      - "3210" # 官网在容器内运行于 3210 端口
-    networks:
-      - xipi-network
-    restart: always
-
-  # 3. Taleweave (taleweave.xipilabs.com)
-  taleweave-app:
-    profiles: ["examples"]
-    image: xipilabs/taleweave-image:latest # 示例：请替换成您真实的 Taleweave 镜像
-    container_name: taleweave-app
-    expose:
-      - "3000" # Taleweave 在容器内运行于 3000 端口
-    networks:
-      - xipi-network
-    restart: always
-
 # 共享网络，让 Nginx 可以通过服务名访问应用
 networks:
   xipi-network:
-    driver: bridge
+    external: true
