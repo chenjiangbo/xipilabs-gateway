@@ -22,7 +22,7 @@ app.get('/verify', (req, res) => {
 
     try {
         const payload = jwt.verify(token, jwtSecret, {
-            issuer: 'www.xipilabs.com',
+            issuer: 'xipilabs-auth',
             audience: 'xipilabs-products',
         });
 
