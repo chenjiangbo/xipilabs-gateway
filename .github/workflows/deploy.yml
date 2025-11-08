@@ -32,7 +32,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: "docker-compose.yml,nginx_config/" # 同步配置文件
+          source: "docker-compose.yml,nginx_config/,auth_service/" # 同步配置文件
           target: ${{ secrets.PROJECT_PATH }} # 目标服务器路径
           strip_components: 0 # 保持目录结构
 
