@@ -7,19 +7,29 @@ const port = process.env.PORT || 3000;
 
 app.use(cookieParser());
 
+function extractToken(req) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && typeof authHeader === 'string') {
+        const parts = authHeader.split(' ');
+        if (parts.length === 2 && /^bearer$/i.test(parts[0])) {
+            return parts[1];
+        }
+    }
+    return req.cookies ? req.cookies['auth-token'] : undefined;
+}
+
 app.get('/verify', (req, res) => {
     console.log('\n--- New verification request ---');
     console.log('Request Time:', new Date().toISOString());
-    console.log('Request Cookies:', req.cookies);
 
-    const token = req.cookies['auth-token'];
+    const token = extractToken(req);
 
     if (!token) {
-        console.log('Result: Failure - No auth-token cookie found.');
+        console.log('Result: Failure - No auth token found (cookie or header).');
         return res.status(401).send('Unauthorized: No token provided');
     }
 
-    console.log('Auth-token found. Proceeding to verification...');
+    console.log('Auth token found. Proceeding to verification...');
 
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
@@ -36,7 +46,6 @@ app.get('/verify', (req, res) => {
         console.log('Result: Success - JWT verification successful.');
         console.log('Payload subject (user_id):', payload.sub);
 
-        // 将用户信息从 payload 放入响应头，供 Nginx 捕获
         if (payload.sub) {
             res.setHeader('X-User-ID', payload.sub);
         }
