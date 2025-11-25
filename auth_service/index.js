@@ -23,6 +23,8 @@ app.get('/verify', (req, res) => {
     console.log('Request Time:', new Date().toISOString());
     console.log('Request Headers Authorization:', req.headers['authorization'] || 'none');
     console.log('Request Cookies:', req.cookies || {});
+    // 调试：打印全部头，便于检查是否收到 Authorization
+    console.log('Request All Headers:', req.headers);
 
     const token = extractToken(req);
 
