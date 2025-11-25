@@ -29,8 +29,9 @@ services:
     restart: always
     networks:
       - xipi-network
+    env_file:
+      - .env
     environment:
-      # JWT_SECRET 需要通过 .env 文件或环境变量提供
       - JWT_SECRET=${JWT_SECRET}
 
   # 3. 证书申请/续期（需要时使用 docker compose run 调用）
