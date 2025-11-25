@@ -29,8 +29,6 @@ services:
     restart: always
     networks:
       - xipi-network
-    env_file:
-      - .env
     environment:
       - JWT_SECRET=${JWT_SECRET}
 
