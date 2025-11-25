@@ -21,6 +21,8 @@ function extractToken(req) {
 app.get('/verify', (req, res) => {
     console.log('\n--- New verification request ---');
     console.log('Request Time:', new Date().toISOString());
+    console.log('Request Headers Authorization:', req.headers['authorization'] || 'none');
+    console.log('Request Cookies:', req.cookies || {});
 
     const token = extractToken(req);
 
