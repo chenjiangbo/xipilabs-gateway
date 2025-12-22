@@ -6,6 +6,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: false }));
 
 function extractToken(req) {
     const authHeader = req.headers['authorization'];
@@ -66,6 +67,36 @@ app.get('/verify', (req, res) => {
         console.error('JWT Error:', err.message);
         return res.status(401).send('Unauthorized: Invalid token');
     }
+});
+
+app.post('/apple/callback', (req, res) => {
+    const code = req.body && req.body.code;
+    const state = req.body && req.body.state;
+    const user = req.body && req.body.user;
+
+    if (!code || !state) {
+        console.warn('[Apple Callback Proxy] Missing code/state', { codePresent: Boolean(code), state });
+        return res.status(400).send('Invalid Apple callback payload');
+    }
+
+    const host = req.headers['x-forwarded-host'] || req.headers['host'];
+    const proto = req.headers['x-forwarded-proto'] || 'https';
+    if (!host) {
+        console.error('[Apple Callback Proxy] Missing Host header');
+        return res.status(400).send('Missing Host header');
+    }
+
+    const params = new URLSearchParams();
+    params.set('code', String(code));
+    params.set('state', String(state));
+    if (user) {
+        params.set('user', String(user));
+    }
+
+    const destination = `${proto}://${host}/api/auth/callback/apple?${params.toString()}`;
+    console.log('[Apple Callback Proxy] Redirecting to', destination);
+    res.setHeader('Location', destination);
+    return res.status(303).send('');
 });
 
 app.listen(port, () => {
