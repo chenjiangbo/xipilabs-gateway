@@ -58,7 +58,8 @@ app.get('/verify', (req, res) => {
             res.setHeader('X-User-Email', payload.email);
         }
         if (payload.name) {
-            res.setHeader('X-User-Name', payload.name);
+            const nameB64 = Buffer.from(String(payload.name), 'utf8').toString('base64url');
+            res.setHeader('X-User-Name-B64', nameB64);
         }
         if (payload.phone) {
             res.setHeader('X-User-Phone', payload.phone);
