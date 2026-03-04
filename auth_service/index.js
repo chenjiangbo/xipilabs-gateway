@@ -57,6 +57,9 @@ app.get('/verify', (req, res) => {
         if (payload.email) {
             res.setHeader('X-User-Email', payload.email);
         }
+        if (payload.name) {
+            res.setHeader('X-User-Name', payload.name);
+        }
         if (payload.phone) {
             res.setHeader('X-User-Phone', payload.phone);
         }
