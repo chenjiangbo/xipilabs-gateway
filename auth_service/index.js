@@ -51,9 +51,12 @@ app.get('/verify', (req, res) => {
         console.log('Result: Success - JWT verification successful.');
         console.log('Payload subject (user_id):', payload.sub);
 
-        if (payload.sub) {
-            res.setHeader('X-User-ID', payload.sub);
+        if (!payload.sub || !String(payload.sub).trim()) {
+            console.log('Result: Failure - Missing subject (sub) in JWT payload.');
+            return res.status(401).send('Unauthorized: Invalid token payload');
         }
+
+        res.setHeader('X-User-ID', String(payload.sub).trim());
         if (payload.email) {
             res.setHeader('X-User-Email', payload.email);
         }
